@@ -55,10 +55,16 @@ def make_file(title_data, context_data):
         df = pandas.DataFrame({"title" : title_data})
         writer = ExcelWriter(os.path.join(ROOT_URL,'Output','TitleList.xlsx'))
         df.to_excel(writer, 'Sheet1')
-        writer.save()
+        try:
+            writer.save()
+        except PermissionError:
+            print("파일 저장에 실패했습니다. 혹시 TitleList.xlsx이 열려 있나 확인해주세요.")
     else:
         total_data = dict(zip(title_data, context_data))
         df = pandas.DataFrame(total_data)
         writer = ExcelWriter(os.path.join(ROOT_URL,'Output','NewsCrawlList.xlsx'))
         df.to_excel(writer, 'Sheet1')
-        writer.save()
+        try:
+            writer.save()
+        except PermissionError:
+            print("파일 저장에 실패했습니다. 혹시 NewsCrawlList.xlsx이 열려 있나 확인해주세요.")
