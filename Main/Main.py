@@ -4,10 +4,9 @@ import argparse
 from Config import Config
 from TitleCrawler import title_crawl
 from Data import select_category, make_file
-import os
 
 def Crawl(config):
-    # crawl_data = title : link
+    # crawl_data = {title : link} 형태의 dictionary
     # title_data = title
     # context_data = context (본문 내용까지 크롤링 할 시)
     crawl_data = {}
