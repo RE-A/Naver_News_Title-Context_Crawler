@@ -37,6 +37,8 @@ def select_category():
         EX) 정치 경제
             사회 생활 IT
             경제 사회 생활 세계 IT 정치
+        
+        입력:    
         """)
 
         categories = select_categories.split()
@@ -61,7 +63,7 @@ def make_file(title_data, context_data):
             print("파일 저장에 실패했습니다. 혹시 TitleList.xlsx이 열려 있나 확인해주세요.")
     else:
         total_data = dict(zip(title_data, context_data))
-        df = pandas.DataFrame(total_data)
+        df = pandas.DataFrame.from_dict(total_data, orient='index')
         writer = ExcelWriter(os.path.join(ROOT_URL,'Output','NewsCrawlList.xlsx'))
         df.to_excel(writer, 'Sheet1')
         try:

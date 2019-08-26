@@ -3,7 +3,6 @@
 # string 수준에서 작동하는 함수는 beautify 뿐이다.
 
 from bs4 import BeautifulSoup
-from Data import categories, RANKING_NEWS_URL_FORMAT, get_today
 from urllib.request import urlopen
 import re
 
@@ -26,54 +25,64 @@ def summary_cleaner(_text_div):
     return _text_div
 
 
-def beautify(plaintext):
+def beautify(plaintext, is_lf_exist):
     plaintext = plaintext.replace('/t', '').replace('[]', '').replace('</div>','')
-
+    tag_cleaner = re.compile('<(.*?)>')
     comment_cleaner = re.compile('<!--.*-->')
-    bold_cleaner = re.compile('<\/?strong>')
-    lf_maker = re.compile('(<br/>)+')
-    lf_cleaner = re.compile('(\n){3,}')    # 개행이 여러개일 경우 하나로 줄인다.
+    # bold_cleaner = re.compile('<\/?strong>')
+    lf_maker = re.compile('(<br/?>)+')
+    lf_cleaner = re.compile('(\n){2,}')    # 개행이 여러개일 경우 하나로 줄인다.
+    space_cleaner = re.compile('[ ]+')
 
     plaintext = plaintext.replace('<div class="_article_body_contents" id="articleBodyContents">','')
-    text_div = re.sub(comment_cleaner, '', plaintext)
-    text_div = re.sub(bold_cleaner, '', text_div)
-    text_div = re.sub(lf_maker, '\n\n', text_div)
-    text_div = re.sub(lf_cleaner, '\n', text_div)
+    plaintext = re.sub(comment_cleaner, '', plaintext)
+    plaintext = re.sub(lf_maker, '\n\n', plaintext)
+    plaintext = re.sub(tag_cleaner, ' ', plaintext)
+    # plaintext = re.sub(bold_cleaner, '', plaintext)
+    plaintext = re.sub(lf_cleaner, '\n', plaintext)
+
+    if not is_lf_exist:
+        plaintext = re.sub('\r?\n|\r', ' ', plaintext)
+
+    plaintext = re.sub(space_cleaner, ' ', plaintext)
 
     # 빈 line feed 제거용.
-    text_div = text_div.strip()
-    print(text_div)
+    plaintext = plaintext.strip()
+    return plaintext
 
 
-def text_cleaner(_text_div, is_image_clean=True, is_summary_clean=True):
-
+def text_cleaner(_text_div, config):
     for script in _text_div(["script", "style", "a"]):
         script.extract()
 
+    is_image_clean = config['image']
+    is_summary_clean = config['summary']
+    is_lf_exist = config['lf']
+
     # cleaner 함수들을 이용해 본문을 정리한다.
     if is_image_clean:
-        processing_text_div = image_cleaner(_text_div)
+        _text_div = image_cleaner(_text_div)
     if is_summary_clean:
-        processing_text_div = summary_cleaner(processing_text_div)
+        _text_div = summary_cleaner(_text_div)
 
     # 텍스트화 후 정규식을 이용하여 본문을 정리한다.
-    text_div = str(processing_text_div)
-    beautify(text_div)
+    text_div = str(_text_div)
+    return beautify(text_div, is_lf_exist)
 
 
 
-def context_crawl(link_url):
-    html = urlopen(link_url)
+
+def context_crawl(link_url, settings):
+    html = urlopen('http://'+link_url)
     news_page = BeautifulSoup(html, 'html.parser')
 
     text_div = news_page.find('div',{'id' : 'articleBodyContents' })
-    cleaned_text = text_cleaner(text_div)
+    cleaned_text = text_cleaner(text_div, settings)
     return cleaned_text
 
 
 
 
 if __name__ == "__main__":
-    #Debug
     context_crawl('https://news.naver.com/main/ranking/read.nhn?mid=etc&'
                   'sid1=111&rankingType=popular_day&oid=023&aid=0003468929&date=20190822&type=1&rankingSeq=2&rankingSectionId=100')

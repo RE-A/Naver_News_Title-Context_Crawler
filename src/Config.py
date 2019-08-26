@@ -3,14 +3,13 @@ import datetime
 
 class Config():
 
-    def __init__(self, title, image, summary, linefeed, days):
+    def __init__(self, title, image, summary, linefeed, days, noinfo):
         self.is_title_only_crawl = title
         self.is_image_crawl = image
         self.is_summary_crawl = summary
         self.is_lf = linefeed
         self.days = days
-
-
+        self.noinfo =noinfo
 
     def get_days_list(self):
         days_list = []
@@ -24,7 +23,12 @@ class Config():
         # print(type(self.days_list[1]))
 
     def get_config(self):
-        return self.is_title_only_crawl, self.is_image_crawl, self.is_summary_crawl,  self.is_lf
+        setting= {'title': self.is_title_only_crawl,
+                  'image': self.is_image_crawl,
+                  'summary':self.is_summary_crawl,
+                  'lf': self.is_lf,
+                  'noinfo': self.noinfo}
+        return setting
 
 
 
