@@ -39,7 +39,6 @@ def Crawl(config):
                 crawl_logger.info(str((idx / urllist.__len__())*100) + "% 진행")
             idx += 1
     # File화 process
-    crawl_logger.info("본문 크롤링이 완료되었습니다.")
     make_file(list(crawl_data.keys()), context_data)
     crawl_logger.info("엑셀 파일 작성이 완료되었습니다. Output 폴더를 확인해주세요.")
 
