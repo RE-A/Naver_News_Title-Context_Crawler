@@ -36,7 +36,7 @@ def Crawl(config):
             context_data.append(context_crawl(url, settings))
             time.sleep(0.03)    # 서버 과부하를 방지하기 위한 크롤링 한번 당 대기시간. 유동적으로 조정 가능.
             if (idx % 30 == 0) :
-                crawl_logger.info(str((idx / urllist.__len__())*100) + "% 진행")
+                crawl_logger.info(str(round(idx / urllist.__len__()*100,2)) + "% 진행")
             idx += 1
     # File화 process
     make_file(list(crawl_data.keys()), context_data)
@@ -47,7 +47,7 @@ def Crawl(config):
 # 날짜를 뺄 시 now-datetime.timedelta(days=23) 과 같은 형식 활용할 것.
 
 def main():
-    # 아래의 모든 내용은 title이 False, 즉 기사 본문들도 크롤링 할때만 유효한 옵션임.
+    # image, summary, linefeed는 title이 False, 즉 기사 본문들도 크롤링 할때만 유효한 옵션임.
     # title : 제목만 크롤링 할 것인가?
     # image : 이미지의 캡션도 크롤링 할 것인가?(이미지 크롤링은 미구현)
     # summary : 기사 서두나 중간에 굵은 글씨로 나오는 요약문 역시 크롤링 할 것인가?

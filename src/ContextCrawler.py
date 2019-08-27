@@ -7,14 +7,14 @@ from urllib.request import urlopen
 import re
 
 
-def image_cleaner(_text_div):
+def image_clean(_text_div):
     # 이미지와 그 주석까지 모두 날린다.
     for imgtag in _text_div.find_all('span',{'class':'end_photo_org'}):
         imgtag.extract()
     return _text_div
 
 
-def summary_cleaner(_text_div):
+def summary_clean(_text_div):
     # 보통 기사 서문에 나오는 summary는 두 가지 형태가 있음.
     # 1. <strong class="media_end_summary"> 형태로 지정
     # 2. 단순히 <strong> 태그로 지정
@@ -51,19 +51,19 @@ def beautify(plaintext, is_lf_exist):
     return plaintext
 
 
-def text_cleaner(_text_div, config):
+def text_clean(_text_div, settings):
     for script in _text_div(["script", "style", "a"]):
         script.extract()
 
-    is_image_clean = config['image']
-    is_summary_clean = config['summary']
-    is_lf_exist = config['lf']
+    is_image_clean = settings['image']
+    is_summary_clean = settings['summary']
+    is_lf_exist = settings['lf']
 
     # cleaner 함수들을 이용해 본문을 정리한다.
-    if is_image_clean:
-        _text_div = image_cleaner(_text_div)
-    if is_summary_clean:
-        _text_div = summary_cleaner(_text_div)
+    if not is_image_clean:
+        _text_div = image_clean(_text_div)
+    if not is_summary_clean:
+        _text_div = summary_clean(_text_div)
 
     # 텍스트화 후 정규식을 이용하여 본문을 정리한다.
     text_div = str(_text_div)
@@ -77,7 +77,7 @@ def context_crawl(link_url, settings):
     news_page = BeautifulSoup(html, 'html.parser')
 
     text_div = news_page.find('div',{'id' : 'articleBodyContents' })
-    cleaned_text = text_cleaner(text_div, settings)
+    cleaned_text = text_clean(text_div, settings)
     return cleaned_text
 
 
