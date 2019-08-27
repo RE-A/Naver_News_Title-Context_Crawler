@@ -11,7 +11,7 @@
  자연어 처리나 통계 등에 사용할 수 있도록, 네이버 랭킹 뉴스에서 섹션별로 뉴스의 제목 또는 본문을 수집해 주는 프로그램입니다.
  수집된 텍스트들은 엑셀의 형태로 저장됩니다.
  
- [업데이트 로그](github.com/RE-A/Naver_News_Title-Context_Crawler/wiki)
+ [업데이트 로그](https://github.com/RE-A/Naver_News_Title-Context_Crawler/wiki/Update-Note)
  
 --------------------------------
 
