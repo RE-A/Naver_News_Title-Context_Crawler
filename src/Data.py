@@ -3,7 +3,6 @@ import datetime
 import os
 import pandas
 from pandas import ExcelWriter
-from pandas import ExcelFile
 
 RANKING_NEWS_URL_FORMAT = "https://news.naver.com/main/ranking/popularDay.nhn?rankingType=popular_day&sectionId={0}&date={1}"
 ROOT_URL = os.path.dirname(os.path.dirname(__file__))
@@ -52,7 +51,8 @@ def select_category():
             break
     return categories
 
-def make_file(title_data, context_data):
+def make_file(title_data, link_data, days_data, category_data, context_data):
+    # 엑셀 파일로 출력한다.
     if not context_data:
         df = pandas.DataFrame({"title" : title_data})
         writer = ExcelWriter(os.path.join(ROOT_URL,'Output','TitleList.xlsx'))
@@ -60,13 +60,16 @@ def make_file(title_data, context_data):
         try:
             writer.save()
         except PermissionError:
-            print("파일 저장에 실패했습니다. 혹시 TitleList.xlsx이 열려 있나 확인해주세요.")
+            print("파일 저장에 실패했습니다. TitleList.xlsx이 열려 있나 확인해주세요.")
     else:
-        total_data = dict(zip(title_data, context_data))
-        df = pandas.DataFrame.from_dict(total_data, orient='index')
+        link_data = ["http://" + url for url in link_data]
+        crawl_data_list = zip(category_data,days_data,link_data,title_data,context_data)
+        df = pandas.DataFrame(crawl_data_list)
+        df.index = df.index+1
+        df.columns = ['카테고리', '날짜', '링크', '제목', '내용']
         writer = ExcelWriter(os.path.join(ROOT_URL,'Output','NewsCrawlList.xlsx'))
         df.to_excel(writer, 'Sheet1')
         try:
             writer.save()
         except PermissionError:
-            print("파일 저장에 실패했습니다. 혹시 NewsCrawlList.xlsx이 열려 있나 확인해주세요.")
+            print("파일 저장에 실패했습니다. NewsCrawlList.xlsx이 열려 있나 확인해주세요.")

@@ -13,8 +13,11 @@ def Crawl(config):
     # crawl_data = {title : link} 형태의 dictionary
     # title_data = title
     # context_data = context (본문 내용까지 크롤링 할 시)
+    # days_data / category_data : 각각 날짜, 카테고리 데이터를 담음. pandas에서 처리하기 편하도록 각각 list 형을 취함.
     crawl_data = {}
     context_data = []
+    days_data = []
+    category_data = []
     days_list = config.get_days_list()
     settings = config.get_config()
     crawl_logger = logging.getLogger("Crawl")
@@ -26,7 +29,13 @@ def Crawl(config):
     crawl_logger.info("제목 크롤링을 시작합니다.")
     for category in categories:
         for day in days_list:
+            before_crawl_data_length = len(crawl_data)
             crawl_data.update(title_crawl(category, day))
+            after_crawl_data_length = len(crawl_data)
+            if not settings['title']:
+                for i in range(0, after_crawl_data_length - before_crawl_data_length):
+                    days_data.append(day)
+                    category_data.append(category)
     crawl_logger.info("제목 크롤링이 완료되었습니다.")
     if not settings['title']:
         urllist = list(crawl_data.values())
@@ -39,7 +48,7 @@ def Crawl(config):
                 crawl_logger.info(str(round(idx / urllist.__len__()*100,2)) + "% 진행")
             idx += 1
     # File화 process
-    make_file(list(crawl_data.keys()), context_data)
+    make_file(list(crawl_data.keys()),list(crawl_data.values()), days_data, category_data, context_data)
     crawl_logger.info("엑셀 파일 작성이 완료되었습니다. Output 폴더를 확인해주세요.")
 
 
