@@ -16,6 +16,28 @@ categories = {'정치': 100,
               }
 
 
+class NewsData:
+    # 항목 추가할 시 make_file 함수 역시 손봐야함.
+    def __init__(self):
+        self.title = ''
+        self.category = ''
+        self.link = ''
+        self.date = ''
+        self.context = ''
+
+    def set_title_crawl_data(self, title, link, category, date):
+        self.title = title
+        self.category = category
+        self.link = link
+        self.date = date
+
+    def set_context(self, context):
+        self.context = context
+
+    def get_data(self):
+        return [self.category, self.date, self.link, self.title, self.context]
+
+
 def get_today():
     # '2019-01-01' 과 같은 형식의 문자열 날짜 반환
     now = datetime.date.today()
@@ -37,39 +59,41 @@ def select_category():
             사회 생활 IT
             경제 사회 생활 세계 IT 정치
         
-        입력:    
-        """)
+        입력:""")
 
-        categories = select_categories.split()
+        input_categories = select_categories.split()
         is_categories_valid = True
-        for category in categories:
+        for category in input_categories:
             if not category in categories:
                 print(category + " 은(는) 잘못된 값입니다. 다시 입력해주세요.")
                 is_categories_valid = False
                 break
         if is_categories_valid is True:
             break
-    return categories
+    return input_categories
 
-def make_file(title_data, link_data, days_data, category_data, context_data):
+
+def make_file(data_list):
     # 엑셀 파일로 출력한다.
-    if not context_data:
-        df = pandas.DataFrame({"title" : title_data})
-        writer = ExcelWriter(os.path.join(ROOT_URL,'Output','TitleList.xlsx'))
+    # dataframe을 계속 추가하는 것보단 column 별로 리스트를 만들어서 한번에 dataframe으로 만드는 게 좋은 것 같음.
+    crawled_data = [[data.category, data.date, 'http://'+data.link, data.title, data.context] for data in data_list]
+
+    df = pandas.DataFrame(crawled_data)
+    df.index = df.index + 1
+    df.columns = ['카테고리', '날짜', '링크', '제목', '내용']
+    path = os.path.join(ROOT_URL, 'Output', datetime.datetime.now().strftime('%y%m%d_%H_%M_%S') + '_NewsCrawlList.xlsx')
+    writer = ExcelWriter(path)
+    df.to_excel(writer, 'Sheet1')
+    try:
+        writer.save()
+    except PermissionError:
+        print("NewsCrawlList.xlsx가 이미 열려 있습니다. 현재 시간을 제목으로 한 파일이 저장됩니다.")
+        alter_path = os.path.join(ROOT_URL, 'Output', datetime.datetime.now().strftime('%y%m%d_%H_%M_%S') + '_NewsCrawlList_2.xlsx')
+        writer = ExcelWriter(alter_path)
         df.to_excel(writer, 'Sheet1')
-        try:
-            writer.save()
-        except PermissionError:
-            print("파일 저장에 실패했습니다. TitleList.xlsx이 열려 있나 확인해주세요.")
-    else:
-        link_data = ["http://" + url for url in link_data]
-        crawl_data_list = zip(category_data,days_data,link_data,title_data,context_data)
-        df = pandas.DataFrame(crawl_data_list)
-        df.index = df.index+1
-        df.columns = ['카테고리', '날짜', '링크', '제목', '내용']
-        writer = ExcelWriter(os.path.join(ROOT_URL,'Output','NewsCrawlList.xlsx'))
-        df.to_excel(writer, 'Sheet1')
-        try:
-            writer.save()
-        except PermissionError:
-            print("파일 저장에 실패했습니다. NewsCrawlList.xlsx이 열려 있나 확인해주세요.")
+        writer.save()
+
+
+if __name__ == "__main__":
+    # Dataframe making test
+    make_file([])

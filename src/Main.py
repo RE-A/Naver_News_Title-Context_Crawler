@@ -6,18 +6,13 @@ import time
 
 from .Config import Config
 from .TitleCrawler import title_crawl
-from .Data import select_category, make_file
+from .Data import select_category, make_file, NewsData
 from .ContextCrawler import context_crawl
 
+# NewsData 객체들을 저장하는 리스트.
+news_data_list = []
+
 def Crawl(config):
-    # crawl_data = {title : link} 형태의 dictionary
-    # title_data = title
-    # context_data = context (본문 내용까지 크롤링 할 시)
-    # days_data / category_data : 각각 날짜, 카테고리 데이터를 담음. pandas에서 처리하기 편하도록 각각 list 형을 취함.
-    crawl_data = {}
-    context_data = []
-    days_data = []
-    category_data = []
     days_list = config.get_days_list()
     settings = config.get_config()
     crawl_logger = logging.getLogger("Crawl")
@@ -29,26 +24,27 @@ def Crawl(config):
     crawl_logger.info("제목 크롤링을 시작합니다.")
     for category in categories:
         for day in days_list:
-            before_crawl_data_length = len(crawl_data)
-            crawl_data.update(title_crawl(category, day))
-            after_crawl_data_length = len(crawl_data)
-            if not settings['title']:
-                for i in range(0, after_crawl_data_length - before_crawl_data_length):
-                    days_data.append(day)
-                    category_data.append(category)
+            # [(제목, 링크) , (제목, 링크), ...] 형식으로 반환됨
+            crawled_datas = title_crawl(category, day)
+
+            for crawled_data in crawled_datas:
+                news = NewsData()
+                news.set_title_crawl_data(crawled_data[0], crawled_data[1], category, day)
+                news_data_list.append(news)
     crawl_logger.info("제목 크롤링이 완료되었습니다.")
     if not settings['title']:
-        urllist = list(crawl_data.values())
-        idx = 1
         crawl_logger.info("본문 크롤링을 시작합니다.")
-        for url in urllist:
-            context_data.append(context_crawl(url, settings))
-            time.sleep(0.03)    # 서버 과부하를 방지하기 위한 크롤링 한번 당 대기시간. 유동적으로 조정 가능.
-            if (idx % 30 == 0) :
-                crawl_logger.info(str(round(idx / urllist.__len__()*100,2)) + "% 진행")
+        total_length = len(news_data_list)  # 전체 크롤링할 기사 수
+        idx = 0
+        for news_data in news_data_list:
+            url = news_data.link
+            news_data.set_context(context_crawl(url, settings))
+            time.sleep(0.03)    # 서버 과부하를 방지하기 위한 크롤링 한번 당 대기시간.
+            if (total_length % 30 == 0) :
+                crawl_logger.info(str(round(idx / total_length*100,2)) + "% 진행")
             idx += 1
     # File화 process
-    make_file(list(crawl_data.keys()),list(crawl_data.values()), days_data, category_data, context_data)
+    make_file(news_data_list)
     crawl_logger.info("엑셀 파일 작성이 완료되었습니다. Output 폴더를 확인해주세요.")
 
 
@@ -71,9 +67,9 @@ def main():
     parser.add_argument('--noinfo', required=False, action='store_true', default=False)
 
     args = parser.parse_args()
-
     config = Config(args.title, args.image, args.summary, args.linefeed, args.days, args.noinfo)
 
+    # Main Procedure
     Crawl(config)
 
     # print(type(args.title))

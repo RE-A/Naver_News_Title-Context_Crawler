@@ -5,6 +5,7 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import re
+from Config import Config
 
 
 def image_clean(_text_div):
@@ -26,7 +27,7 @@ def summary_clean(_text_div):
 
 
 def beautify(plaintext, is_lf_exist):
-    plaintext = plaintext.replace('/t', '').replace('[]', '').replace('</div>','')
+    plaintext = plaintext.replace('/t', '').replace('[]', '').replace('</div>','').replace(r'&amp;','&')
     tag_cleaner = re.compile('<(.*?)>')
     comment_cleaner = re.compile('<!--.*-->')
     # bold_cleaner = re.compile('<\/?strong>')
@@ -84,5 +85,6 @@ def context_crawl(link_url, settings):
 
 
 if __name__ == "__main__":
-    context_crawl('https://news.naver.com/main/ranking/read.nhn?mid=etc&'
-                  'sid1=111&rankingType=popular_day&oid=023&aid=0003468929&date=20190822&type=1&rankingSeq=2&rankingSectionId=100')
+    conf = Config(False,False,False,False,1,False)
+    context_crawl('news.naver.com/main/ranking/read.nhn?mid=etc&'
+                  'sid1=111&rankingType=popular_day&oid=023&aid=0003468929&date=20190822&type=1&rankingSeq=2&rankingSectionId=100',conf.get_config())
