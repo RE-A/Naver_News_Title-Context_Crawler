@@ -5,7 +5,7 @@
 from bs4 import BeautifulSoup
 from urllib.request import urlopen
 import re
-from Config import Config
+from .Config import Config
 
 
 def image_clean(_text_div):
